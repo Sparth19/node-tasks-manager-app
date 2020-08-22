@@ -9,14 +9,15 @@ const taskSchema = new mongooes.Schema({
     completed: {
         type: Boolean,
         default: false
+    },
+    owner: {
+        type: mongooes.Schema.Types.ObjectId,
+        required: true,
+        ref: 'User'
     }
 })
 
-taskSchema.pre('save', async(next) => {
-    console.log("Task saving -by middleware")
-    next()
-})
-const Task = mongooes.model('Tasks', taskSchema)
 
+const Task = mongooes.model('Tasks', taskSchema)
 
 module.exports = Task

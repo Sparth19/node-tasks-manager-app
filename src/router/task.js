@@ -1,9 +1,19 @@
 const express = require('express')
 const Task = require('../model/Tasks')
+const auth = require('../middleware/auth')
 const router = new express.Router()
 
-router.post('/tasks', async(req, res) => {
-    const task = new Task(req.body)
+
+
+router.post('/tasks', auth, async(req, res) => {
+    // const task = new Task(req.body)
+
+    const task = new Task({
+        //... ES6 spread operator it will copy
+        ...req.body,
+        owner: req.user._id
+    })
+
     try {
         await task.save()
         res.status(201).send(task)
@@ -17,11 +27,19 @@ router.post('/tasks', async(req, res) => {
     // })
 })
 
-router.get('/tasks', async(req, res) => {
+
+
+router.get('/tasks', auth, async(req, res) => {
+
 
     try {
-        const tasks = await Task.find({})
+
+        const tasks = await Task.find({ 'owner': req.user._id })
+
         res.status(200).send(tasks)
+
+        // await req.user.populate('task').execPopulate()
+        //res.status(200).send(req.user.tasks)
     } catch (error) {
         res.status(500).send(error)
     }
@@ -33,11 +51,15 @@ router.get('/tasks', async(req, res) => {
     // })
 })
 
-router.get('/tasks/:id', async(req, res) => {
+
+
+router.get('/tasks/:id', auth, async(req, res) => {
     const _id = req.params.id
 
     try {
-        const task = await Task.findById({ _id })
+        //const task = await Task.findById({ _id })
+
+        const task = await Task.findOne({ _id, 'owner': req.user._id })
         if (!task) {
             return res.status(404).send()
         }
@@ -56,7 +78,7 @@ router.get('/tasks/:id', async(req, res) => {
     //     res.status(500).send(e)
     // })
 })
-router.patch('/tasks/:id', async(req, res) => {
+router.patch('/tasks/:id', auth, async(req, res) => {
     const taskKey = Object.keys(req.body)
     const allowed = ['description', 'completed']
     const isValid = taskKey.every((result) => allowed.includes(result))
@@ -66,17 +88,15 @@ router.patch('/tasks/:id', async(req, res) => {
     }
 
     try {
-        const task = await Task.findById(req.params.id)
-
+        const task = await Task.findOneAndUpdate({ '_id': req.params.id, 'owner': req.user._id })
+            // const task = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
+        if (!task) {
+            return res.status(404).send(task)
+        }
         taskKey.forEach((update) => {
             task[update] = req.body[update]
         })
         await task.save()
-
-        // const task = await Task.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
-        if (!task) {
-            return res.status(404).send(task)
-        }
         res.status(200).send(task)
 
     } catch (e) {
@@ -84,9 +104,9 @@ router.patch('/tasks/:id', async(req, res) => {
     }
 })
 
-router.delete('/tasks/:id', async(req, res) => {
+router.delete('/tasks/:id', auth, async(req, res) => {
     try {
-        const task = await Task.findByIdAndDelete(req.params.id)
+        const task = await Task.findOneAndDelete({ _id: req.params.id, owner: req.user._id })
         if (!task) {
             return res.status(404).send()
         }

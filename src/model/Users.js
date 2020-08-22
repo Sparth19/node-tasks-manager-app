@@ -3,6 +3,7 @@ const validator = require('validator')
 const bcrypt = require('bcryptjs')
 const jwt = require('jsonwebtoken')
 require('../db/mongoose')
+const Task = require('./Tasks')
 
 const userSchema = new mongooes.Schema({
     name: {
@@ -49,13 +50,37 @@ const userSchema = new mongooes.Schema({
     }]
 })
 
+//virtual prop for task user relationship this field will not store in the db
+
+userSchema.virtual('tasks', {
+    ref: 'Task',
+    localField: '_id',
+    foreignField: 'owner'
+})
+
+//for hiding password and tokens array
+userSchema.methods.toJSON = function() {
+    const user = this
+    const userObject = user.toObject()
+
+    delete userObject.password
+    delete userObject.tokens
+
+    return userObject
+}
+
+
+
 
 //generating user token
 userSchema.methods.generateAuthToken = async function() {
 
         const user = this
-        const token = jwt.sign({ _id: user._id.toString() }, 'task-manager')
-
+        const token = jwt.sign({ _id: user._id.toString() }, 'task-manager', { expiresIn: '2 days' })
+            //for expiresIn
+            /**Eg: 60, "2 days", "10h", "7d". A numeric value is interpreted as a seconds count.
+             *  If you use a string be sure you provide the time units (days, hours, etc), 
+             * otherwise milliseconds unit is used by default ("120" is equal to "120ms"). */
         user.tokens = user.tokens.concat({ token })
         user.save()
         return token
@@ -79,7 +104,7 @@ userSchema.statics.findByCredentials = async(email, password) => {
 
 
 
-//hashing the plain text password
+//MIDDLEWARE :hashing the plain text password
 userSchema.pre('save', async function(next) {
     // console.log('In the save pre')
     const user = this
@@ -88,6 +113,15 @@ userSchema.pre('save', async function(next) {
     }
     next()
 })
+
+//MIDDLEWARE : delete all the task of user if deleting the user
+
+userSchema.pre('remove', async function(next) {
+    const user = this
+    await Task.deleteMany({ owner: user._id })
+    next()
+})
+
 const User = mongooes.model('Users', userSchema)
 
 module.exports = User

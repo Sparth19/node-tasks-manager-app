@@ -1,16 +1,15 @@
-const tokenchecker = require('jsonwebtoken')
+const jwt = require('jsonwebtoken')
 const User = require('../model/Users')
 
 
 const auth = async(req, res, next) => {
-    console.log('Auth middleware')
+    // console.log('Auth middleware')
 
     try {
         const token = req.header('Authorization').replace('Bearer ', '')
-
-
-        const decoded = tokenchecker.verify(token, 'task-manager')
-        console.log(token)
+            //task-manager is important
+        const decoded = jwt.verify(token, 'task-manager')
+            // console.log(token)
 
         const user = await User.findOne({ _id: decoded._id, 'tokens.token': token })
 
@@ -18,7 +17,7 @@ const auth = async(req, res, next) => {
         if (!user) {
             throw new Error()
         }
-
+        req.token = token
         req.user = user
 
         next()
