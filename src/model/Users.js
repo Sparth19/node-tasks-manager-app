@@ -48,7 +48,7 @@ const userSchema = new mongooes.Schema({
             required: true
         }
     }]
-})
+}, { timestamps: true })
 
 //virtual prop for task user relationship this field will not store in the db
 

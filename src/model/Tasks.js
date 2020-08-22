@@ -1,4 +1,5 @@
 const mongooes = require('mongoose')
+const { Timestamp } = require('mongodb')
 
 require('../db/mongoose')
 const taskSchema = new mongooes.Schema({
@@ -15,7 +16,7 @@ const taskSchema = new mongooes.Schema({
         required: true,
         ref: 'User'
     }
-})
+}, { timestamps: true })
 
 
 const Task = mongooes.model('Tasks', taskSchema)

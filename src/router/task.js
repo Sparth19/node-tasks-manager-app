@@ -28,18 +28,25 @@ router.post('/tasks', auth, async(req, res) => {
 })
 
 
-
+//GET /tasks?completed=true
+//GET /tasks?limit=10&skip=2
 router.get('/tasks', auth, async(req, res) => {
-
-
+    const match = {}
+    if (req.query.completed) {
+        match.completed = req.query.completed === 'true'
+    }
     try {
-
-        const tasks = await Task.find({ 'owner': req.user._id })
+        //...match to copy
+        const tasks = await Task.find({...match,
+            'owner': req.user._id,
+        }).limit(parseInt(req.query.limit)).skip(parseInt(req.query.skip))
 
         res.status(200).send(tasks)
 
+
         // await req.user.populate('task').execPopulate()
-        //res.status(200).send(req.user.tasks)
+        // res.send(req.user.tasks)
+
     } catch (error) {
         res.status(500).send(error)
     }
