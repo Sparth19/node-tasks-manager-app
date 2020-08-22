@@ -1,8 +1,7 @@
 const mongooes = require('mongoose')
+
 require('../db/mongoose')
-
-
-const Task = mongooes.model('Tasks', {
+const taskSchema = new mongooes.Schema({
     description: {
         type: String,
         required: true,
@@ -12,5 +11,12 @@ const Task = mongooes.model('Tasks', {
         default: false
     }
 })
+
+taskSchema.pre('save', async(next) => {
+    console.log("Task saving -by middleware")
+    next()
+})
+const Task = mongooes.model('Tasks', taskSchema)
+
 
 module.exports = Task
