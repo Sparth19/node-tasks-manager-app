@@ -47,7 +47,10 @@ const userSchema = new mongooes.Schema({
             type: String,
             required: true
         }
-    }]
+    }],
+    avatar: {
+        type: Buffer
+    }
 }, { timestamps: true })
 
 //virtual prop for task user relationship this field will not store in the db
@@ -65,6 +68,7 @@ userSchema.methods.toJSON = function() {
 
     delete userObject.password
     delete userObject.tokens
+    delete userObject.avatar
 
     return userObject
 }

@@ -30,16 +30,26 @@ router.post('/tasks', auth, async(req, res) => {
 
 //GET /tasks?completed=true
 //GET /tasks?limit=10&skip=2
+//GET /tasks?sortby=createdAt:asc
 router.get('/tasks', auth, async(req, res) => {
     const match = {}
+    const sort = {}
     if (req.query.completed) {
         match.completed = req.query.completed === 'true'
     }
+
+    if (req.query.sortBy) {
+        const parts = req.query.sortBy.split(':')
+        sort[parts[0]] = parts[1] === 'desc' ? -1 : 1
+    }
     try {
+
         //...match to copy
         const tasks = await Task.find({...match,
-            'owner': req.user._id,
-        }).limit(parseInt(req.query.limit)).skip(parseInt(req.query.skip))
+                'owner': req.user._id,
+            }).limit(parseInt(req.query.limit))
+            .skip(parseInt(req.query.skip))
+            .sort(sort)
 
         res.status(200).send(tasks)
 
