@@ -5,7 +5,8 @@
     "main": "app.js",
     "scripts": {
         "start": "node src/app.js",
-        "dev": "env-cmd -f ./config/dev.env nodemon src/app.js"
+        "dev": "env-cmd -f ./config/dev.env nodemon src/app.js",
+        "test": "jest"
     },
     "author": "",
     "license": "ISC",
@@ -22,6 +23,7 @@
         "validator": "^13.1.1"
     },
     "devDependencies": {
-        "env-cmd": "^10.1.0"
+        "env-cmd": "^10.1.0",
+        "jest": "^26.4.2"
     }
 }
